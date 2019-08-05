@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">UberClone</string>
+
+    <!-- Change the following strings as required -->
+    <string name="back4app_server_url">https://parseapi.back4app.com/</string>
+    <string name="back4app_app_id">RR6gTyFPZCJJ3iUkdBWFMcrZcZurPhebCUu23crG</string>
+    <string name="back4app_client_key">3w4CN3Tw7d4SiUAhpJwmnXvpO9BM57NmrV9pRcXQ</string>
+
+    <string name="LogIn">Log In</string>
+    <string name="EnterUserName">Enter Username...</string>
+    <string name="EnterPassword">Enter Password...</string>
+    <string name="Driver">Driver</string>
+    <string name="Passenger">Passenger</string>
+    <string name="SignUp">Sign Up</string>
+    <string name="SignUporLogin">Don\'t want to sign up or Login?</string>
+    <string name="DriverorPassenger">Are you a Driver or a Passenger?</string>
+    <string name="Onetimelogin">One time login</string>
+    <string name="RequestaCar">Request a Car</string>
+    <string name="LogoutfromApp">Logout from App</string>
+    <string name="ViewPassengerRequestsHere">View Passenger Requests Here</string>
+    <string name="GetNearbyRequests">Get Nearby Requests</string>
+    <string name="title_activity_passenger">Passenger</string>
+</resources>
