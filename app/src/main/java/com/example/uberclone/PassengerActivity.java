@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -23,6 +24,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
+import com.parse.LogOutCallback;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
@@ -52,7 +54,7 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
         mapFragment.getMapAsync( this );
 
         btnRequestCar = findViewById( R.id.btnRequestCar );
-        btnRequestCar.setOnClickListener( PassengerActivity.this );
+        btnRequestCar.setOnClickListener( this );
         ParseQuery<ParseObject> carRequestQuery = ParseQuery.getQuery( "RequestCar" );
         carRequestQuery.whereEqualTo( "username", ParseUser.getCurrentUser() );
         carRequestQuery.findInBackground( new FindCallback<ParseObject>() {
@@ -62,6 +64,17 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
                     isUberCancelled = false;
                     btnRequestCar.setText( "Cancel Your Request" );
                 }
+            }
+        } );
+        findViewById( R.id.btnLogOutPassengerActivity ).setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ParseUser.logOutInBackground( new LogOutCallback() {
+                    @Override
+                    public void done(ParseException e) {
+                        if (e == null) finish();
+                    }
+                } );
             }
         } );
     }
@@ -102,12 +115,26 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
 
             }
         };
-        if (ContextCompat.checkSelfPermission( PassengerActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions( PassengerActivity.this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION},1000 );
-        } else {
-            locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER,0, 0, locationListener );
-            Location currentPassengerLocation = locationManager.getLastKnownLocation( LocationManager.GPS_PROVIDER );
-            updateCameraPassengerLocation( currentPassengerLocation );
+        if (Build.VERSION.SDK_INT < 23) {
+            if (checkSelfPermission( Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED && checkSelfPermission( Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    Activity#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for Activity#requestPermissions for more details.
+                locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 0, 0, locationListener );
+                return;
+            }
+        }else if (Build.VERSION.SDK_INT >= 23){
+            if (ContextCompat.checkSelfPermission( PassengerActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions( PassengerActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1000 );
+            } else {
+                locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 0, 0, locationListener );
+                Location currentPassengerLocation = locationManager.getLastKnownLocation( LocationManager.GPS_PROVIDER );
+                updateCameraPassengerLocation( currentPassengerLocation );
+            }
         }
     }
 
@@ -123,10 +150,14 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
         }
     }
     private void updateCameraPassengerLocation(Location pLocation) {
-        LatLng passengerLocation = new LatLng( pLocation.getLatitude(), pLocation.getLongitude() );
-        mMap.clear();
-        mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( passengerLocation, 15 ) );
-        mMap.addMarker( new MarkerOptions().position( passengerLocation ).title( "You're Here" ) );
+        if (pLocation != null) {
+            double latitude = pLocation.getLatitude();
+            double longitude = pLocation.getLongitude();
+            LatLng passengerLocation = new LatLng( pLocation.getLatitude(), pLocation.getLongitude() );
+            mMap.clear();
+            mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( passengerLocation, 15 ) );
+            mMap.addMarker( new MarkerOptions().position( passengerLocation ).title( "You're Here" ) );
+        }
     }
 
     @Override
@@ -168,7 +199,7 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
                                 @Override
                                 public void done(ParseException e) {
                                     if (e == null){
-                                        Toasty.info(PassengerActivity.this, "Request's Deleted", Toasty.LENGTH_SHORT).show();
+                                        Toasty.info(PassengerActivity.this, "Request Deleted", Toasty.LENGTH_SHORT).show();
                                     }
                                 }
                             } );

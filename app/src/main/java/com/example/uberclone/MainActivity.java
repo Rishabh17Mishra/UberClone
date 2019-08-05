@@ -19,9 +19,39 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.parse.SignUpCallback;
 
+import java.util.Objects;
+
 import es.dmoral.toasty.Toasty;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+
+    @Override
+    public void onClick(View view) {
+        if (edtDriverorPassenger.getText().toString().equals("Driver") || edtDriverorPassenger.getText().toString().equals("driver") ||
+                edtDriverorPassenger.getText().toString().equals( "Passenger" ) || edtDriverorPassenger.getText().toString().equals( "passenger" )) {
+            if (ParseUser.getCurrentUser() == null) {
+                ParseAnonymousUtils.logIn( new LogInCallback() {
+                    @Override
+                    public void done(ParseUser user, ParseException e) {
+                        if (user != null && e == null) {
+                            Toasty.success( MainActivity.this, "We have an Anonymus User", Toasty.LENGTH_SHORT ).show();
+                            user.put( "as", edtDriverorPassenger.getText().toString() );
+                            user.saveInBackground( new SaveCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    transitionToPassengerActivity();
+                                    transitionToDriverRequestListActivity();
+                                }
+                            } );
+                        }
+                    }
+                } );
+            } else {
+                Toasty.info( MainActivity.this, "Are you a Driver or a Passenger ? ", Toasty.LENGTH_SHORT ).show();
+                return;
+            }
+        }
+    }
 
     enum State{
         SIGNUP, LOGIN
@@ -39,7 +69,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         ParseInstallation.getCurrentInstallation().saveInBackground();
         if (ParseUser.getCurrentUser() != null) {
-            ParseUser.logOut();
+            //ParseUser.logOut();
+            transitionToPassengerActivity();
+            transitionToDriverRequestListActivity();
         }
         btnSignUpLogin = findViewById( R.id.btnSignUpLogin );
         btnOneTimeLogin = findViewById( R.id.btnOneTimeLogin );
@@ -53,12 +85,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (ParseUser.getCurrentUser() != null){
             // Transition Options to be inserted here
             transitionToPassengerActivity();
+            transitionToDriverRequestListActivity();
         }
         btnSignUpLogin.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (state == State.SIGNUP){
-                    if (driverRadioButton.isChecked() == false && passengerRadioButton.isChecked() == false){
+                    if (!driverRadioButton.isChecked() && !passengerRadioButton.isChecked()){
                         Toasty.info( MainActivity.this, "Are you a Driver or a Passenger ? ", Toasty.LENGTH_SHORT ).show();
                         return;
                     }
@@ -73,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (e == null) {
                                 Toasty.success( MainActivity.this, "Signed Up", Toasty.LENGTH_SHORT ).show();
                                 transitionToPassengerActivity();
+                                transitionToDriverRequestListActivity();
                             }
                         }
                     } );
@@ -83,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             if (user != null && e == null) {
                                 Toasty.success( MainActivity.this, "Logged In", Toasty.LENGTH_SHORT ).show();
                                 transitionToPassengerActivity();
+                                transitionToDriverRequestListActivity();
                             }
                         }
                     } );
@@ -97,33 +132,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent = new Intent( MainActivity.this, PassengerActivity.class );
                 startActivity( intent );
             }
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        if (edtDriverorPassenger.getText().toString().equals("Driver") || edtDriverorPassenger.getText().toString().equals("driver") ||
-                edtDriverorPassenger.getText().toString().equals( "Passenger" ) || edtDriverorPassenger.getText().toString().equals( "passenger" )) {
-                    if (ParseUser.getCurrentUser() == null) {
-                        ParseAnonymousUtils.logIn( new LogInCallback() {
-                            @Override
-                            public void done(ParseUser user, ParseException e) {
-                                if (user != null && e == null) {
-                                    Toasty.success( MainActivity.this, "We have an Anonymus User", Toasty.LENGTH_SHORT ).show();
-                                    user.put( "as", edtDriverorPassenger.getText().toString() );
-                                    user.saveInBackground( new SaveCallback() {
-                                        @Override
-                                        public void done(ParseException e) {
-                                            transitionToPassengerActivity();
-                                        }
-                                    } );
-                                }
-                            }
-                        } );
-                    } else {
-                        Toasty.info( MainActivity.this, "Are you a Driver or a Passenger ? ", Toasty.LENGTH_SHORT ).show();
-                        return;
-                    }
         }
     }
 
@@ -149,5 +157,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
         return super.onOptionsItemSelected( item );
+    }
+
+    private void transitionToDriverRequestListActivity(){
+        if (ParseUser.getCurrentUser() != null) {
+            if (Objects.equals( ParseUser.getCurrentUser().get( "as" ), "Driver" )) {
+                Intent intent = new Intent(this, DriverRequestListActivity.class);
+                startActivity(intent);
+            }
+        }
     }
 }
