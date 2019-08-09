@@ -27,15 +27,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        if (edtDriverorPassenger.getText().toString().equals("Driver") || edtDriverorPassenger.getText().toString().equals("driver") ||
-                edtDriverorPassenger.getText().toString().equals( "Passenger" ) || edtDriverorPassenger.getText().toString().equals( "passenger" )) {
+        if (edtDriverOrPassenger.getText().toString().equals("Driver") || edtDriverOrPassenger.getText().toString().equals( "Passenger" )) {
             if (ParseUser.getCurrentUser() == null) {
                 ParseAnonymousUtils.logIn( new LogInCallback() {
                     @Override
                     public void done(ParseUser user, ParseException e) {
                         if (user != null && e == null) {
-                            Toasty.success( MainActivity.this, "We have an Anonymus User", Toasty.LENGTH_SHORT ).show();
-                            user.put( "as", edtDriverorPassenger.getText().toString() );
+                            Toasty.success( MainActivity.this, "We have an Anonymous User", Toasty.LENGTH_SHORT ).show();
+                            user.put( "as", edtDriverOrPassenger.getText().toString() );
                             user.saveInBackground( new SaveCallback() {
                                 @Override
                                 public void done(ParseException e) {
@@ -60,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private State state;
     private Button btnSignUpLogin, btnOneTimeLogin;
     private RadioButton driverRadioButton, passengerRadioButton;
-    private EditText edtUsername, edtPassword, edtDriverorPassenger;
+    private EditText edtUsername, edtPassword, edtDriverOrPassenger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,20 +72,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             transitionToPassengerActivity();
             transitionToDriverRequestListActivity();
         }
+
         btnSignUpLogin = findViewById( R.id.btnSignUpLogin );
-        btnOneTimeLogin = findViewById( R.id.btnOneTimeLogin );
         driverRadioButton = findViewById( R.id.rdbDriver );
         passengerRadioButton = findViewById( R.id.rdbPassenger );
+        btnOneTimeLogin = findViewById( R.id.btnOneTimeLogin );
         btnOneTimeLogin.setOnClickListener( this );
+
         state = State.SIGNUP;
+
         edtUsername = findViewById( R.id.edtUserName );
         edtPassword = findViewById( R.id.edtPassword );
-        edtDriverorPassenger = findViewById( R.id.edtDOrP );
-        if (ParseUser.getCurrentUser() != null){
-            // Transition Options to be inserted here
-            transitionToPassengerActivity();
-            transitionToDriverRequestListActivity();
-        }
+        edtDriverOrPassenger = findViewById( R.id.edtDOrP );
+
         btnSignUpLogin.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -126,15 +124,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } );
     }
 
-    private void transitionToPassengerActivity() {
-        if (ParseUser.getCurrentUser() != null) {
-            if (ParseUser.getCurrentUser().get( "as" ).equals( "Passenger" )) {
-                Intent intent = new Intent( MainActivity.this, PassengerActivity.class );
-                startActivity( intent );
-            }
-        }
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate( R.menu.menu_signup_activity, menu );
@@ -159,9 +148,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return super.onOptionsItemSelected( item );
     }
 
+    private void transitionToPassengerActivity() {
+        if (ParseUser.getCurrentUser() != null) {
+            if (ParseUser.getCurrentUser().get("as").equals("Passenger")) {
+                Intent intent = new Intent( MainActivity.this, PassengerActivity.class );
+                startActivity( intent );
+            }
+        }
+    }
+
     private void transitionToDriverRequestListActivity(){
         if (ParseUser.getCurrentUser() != null) {
-            if (Objects.equals( ParseUser.getCurrentUser().get( "as" ), "Driver" )) {
+            if (ParseUser.getCurrentUser().get("as").equals("Driver")) {
                 Intent intent = new Intent(this, DriverRequestListActivity.class);
                 startActivity(intent);
             }

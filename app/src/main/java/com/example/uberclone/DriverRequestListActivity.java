@@ -32,6 +32,7 @@ import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,35 +58,15 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
         btnGetRequest.setOnClickListener( this );
         listView = findViewById( R.id.requestListView );
         nearByDriveRequests = new ArrayList<>();
-        adapter = new ArrayAdapter( this, android.R.layout.simple_list_item_1, nearByDriveRequests );
-        listView.setAdapter( adapter );
-        nearByDriveRequests.clear();
         passengerLatitudes = new ArrayList<>();
         passengerLongitudes = new ArrayList<>();
         requestCarUsernames = new ArrayList<>();
+        adapter = new ArrayAdapter( this, android.R.layout.simple_list_item_1, nearByDriveRequests );
+        listView.setAdapter( adapter );
+        nearByDriveRequests.clear();
         locationManager = (LocationManager) getSystemService( LOCATION_SERVICE );
         if (Build.VERSION.SDK_INT < 23 || ContextCompat.checkSelfPermission( this, Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
-            locationListener = new LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER,0,0,locationListener );
-                }
-
-                @Override
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-
-                }
-
-                @Override
-                public void onProviderEnabled(String provider) {
-
-                }
-
-                @Override
-                public void onProviderDisabled(String provider) {
-
-                }
-            };
+            initializeLocationListener();
         }
         listView.setOnItemClickListener( this );
     }
@@ -98,7 +79,7 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.driverLogoutItem){
+        if (item.getItemId() == R.id.driverLogoutItem) {
             ParseUser.logOutInBackground( new LogOutCallback() {
                 @Override
                 public void done(ParseException e) {
@@ -126,7 +107,7 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
                 updateRequestListView( currentDriverLocation );
                 return;
             }
-        }else if (Build.VERSION.SDK_INT >= 23){
+        } else if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission( DriverRequestListActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions( DriverRequestListActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1000 );
             } else {
@@ -141,30 +122,28 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
         if (driverLocation != null) {
             double latitude = driverLocation.getLatitude();
             double longitude = driverLocation.getLongitude();
-
+            saveDriverLocationToParse( driverLocation );
             final ParseGeoPoint driverCurrentLocation = new ParseGeoPoint( driverLocation.getLatitude(), driverLocation.getLongitude() );
             ParseQuery<ParseObject> requestCarQuery = ParseQuery.getQuery( "RequestCar" );
             requestCarQuery.whereNear( "passengerLocation", driverCurrentLocation );
-            //requestCarQuery.whereDoesNotExist( "MyDriver" );
+            requestCarQuery.whereDoesNotExist( "MyDriver" );
             requestCarQuery.findInBackground( new FindCallback<ParseObject>() {
                 @Override
                 public void done(List<ParseObject> objects, ParseException e) {
                     if (e == null) {
                         if (objects.size() > 0) {
-
                             if (nearByDriveRequests.size() > 0) {
                                 nearByDriveRequests.clear();
                             }
-                            if (passengerLatitudes.size() > 0){
+                            if (passengerLatitudes.size() > 0) {
                                 passengerLatitudes.clear();
                             }
-                            if (passengerLongitudes.size() > 0){
+                            if (passengerLongitudes.size() > 0) {
                                 passengerLongitudes.clear();
                             }
-                            if (requestCarUsernames.size() > 0){
+                            if (requestCarUsernames.size() > 0) {
                                 requestCarUsernames.clear();
                             }
-
                             for (ParseObject nearRequests : objects) {
                                 ParseGeoPoint pLocation = (ParseGeoPoint) nearRequests.get( "passengerLocation" );
                                 Double distanceToPassenger = driverCurrentLocation.distanceInKilometersTo( pLocation );
@@ -178,7 +157,8 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
                             }
                         } else {
                             Toasty.info( DriverRequestListActivity.this, "Sorry there are no Requests yet", Toasty.LENGTH_SHORT ).show();
-                        }adapter.notifyDataSetChanged();
+                        }
+                        adapter.notifyDataSetChanged();
                     }
                 }
             } );
@@ -189,7 +169,7 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult( requestCode, permissions, grantResults );
         if (requestCode == 1000 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            if (ContextCompat.checkSelfPermission( DriverRequestListActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission( DriverRequestListActivity.this, Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
                 locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 0, 0, locationListener );
                 Location currentDriverLocation = locationManager.getLastKnownLocation( LocationManager.GPS_PROVIDER );
                 updateRequestListView( currentDriverLocation );
@@ -199,8 +179,8 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if ( ContextCompat.checkSelfPermission( this, Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
-            Location cdLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (ContextCompat.checkSelfPermission( this, Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED) {
+            Location cdLocation = locationManager.getLastKnownLocation( LocationManager.GPS_PROVIDER );
             if (cdLocation != null) {
                 Intent intent = new Intent( this, ViewLocationsMapActivity.class );
                 intent.putExtra( "dLatitude", cdLocation.getLatitude() );
@@ -211,5 +191,46 @@ public class DriverRequestListActivity extends AppCompatActivity implements View
                 startActivity( intent );
             }
         }
+    }
+
+    private void initializeLocationListener() {
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if (checkSelfPermission( Manifest.permission.ACCESS_FINE_LOCATION ) != PackageManager.PERMISSION_GRANTED && checkSelfPermission( Manifest.permission.ACCESS_COARSE_LOCATION ) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    Activity#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for Activity#requestPermissions for more details.
+                    return;
+                }
+                locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 0, 0, locationListener );
+            }
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+            @Override
+            public void onProviderEnabled(String provider) {
+            }
+            @Override
+            public void onProviderDisabled(String provider) {
+            }
+        };
+    }
+    private void saveDriverLocationToParse(Location location){
+        ParseUser driver = ParseUser.getCurrentUser();
+        ParseGeoPoint driverLocation = new ParseGeoPoint( location.getLatitude(), location.getLongitude() );
+        driver.put( "driverLocation",driverLocation );
+        driver.saveInBackground( new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null){
+                    Toasty.info( DriverRequestListActivity.this, "Location Saved", Toasty.LENGTH_SHORT ).show();
+                }
+            }
+        } );
     }
 }

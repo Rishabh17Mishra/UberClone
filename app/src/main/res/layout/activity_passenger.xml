@@ -2,33 +2,39 @@
 
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal">
+    android:orientation="vertical">
 
     <fragment
     android:id="@+id/map"
     android:name="com.google.android.gms.maps.SupportMapFragment"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".PassengerActivity">
+    android:layout_height="500dp"
+    tools:context=".PassengerActivity"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
         <Button
             android:id="@+id/btnRequestCar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/RequestaCar"
-            android:layout_marginTop="2dp"
-            android:layout_marginStart="8dp"/>
+            android:text="@string/RequestaCar"/>
 
         <Button
             android:id="@+id/btnLogOutPassengerActivity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/LogoutfromApp"
-            android:layout_marginTop="2dp"
-            android:layout_marginStart="220dp" />
-    </fragment>
+            android:text="@string/LogoutfromApp" />
+
+        <Button
+            android:id="@+id/btnBeepBeep"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/Beep" />
+
+    </LinearLayout>
 
 </LinearLayout>
