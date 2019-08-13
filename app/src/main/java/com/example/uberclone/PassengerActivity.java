@@ -13,15 +13,15 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
-
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -29,7 +29,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.LogOutCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
@@ -66,6 +65,12 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
         btnRequestCar = findViewById( R.id.btnRequestCar );
         btnRequestCar.setOnClickListener( this );
         btnBeep = findViewById( R.id.btnBeepBeep );
+        btnBeep.setOnClickListener( new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getDriverUpdates();
+            }
+        } );
         ParseQuery<ParseObject> carRequestQuery = ParseQuery.getQuery( "RequestCar" );
         carRequestQuery.whereEqualTo( "username", ParseUser.getCurrentUser().getUsername() );
         carRequestQuery.findInBackground( new FindCallback<ParseObject>() {
@@ -152,14 +157,21 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
         }
     }
     private void updateCameraPassengerLocation(Location pLocation) {
-        if (pLocation != null) {
-            double latitude = pLocation.getLatitude();
-            double longitude = pLocation.getLongitude();
-            LatLng passengerLocation = new LatLng( pLocation.getLatitude(), pLocation.getLongitude() );
+        if (!isCarReady) {
+            LatLng passengerLocation = new LatLng(pLocation.getLatitude(), pLocation.getLongitude());
             mMap.clear();
-            mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( passengerLocation, 15 ) );
-            mMap.addMarker( new MarkerOptions().position( passengerLocation ).title( "You're Here" ) );
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(passengerLocation, 15));
+
+            mMap.addMarker(new MarkerOptions().position(passengerLocation).title("You are here!!!").icon( BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE)));
         }
+//        if (pLocation != null) {
+//            double latitude = pLocation.getLatitude();
+//            double longitude = pLocation.getLongitude();
+//            LatLng passengerLocation = new LatLng( pLocation.getLatitude(), pLocation.getLongitude() );
+//            mMap.clear();
+//            mMap.moveCamera( CameraUpdateFactory.newLatLngZoom( passengerLocation, 15 ) );
+//            mMap.addMarker( new MarkerOptions().position( passengerLocation ).title( "You're Here" ) );
+//        }
     }
 
     @Override
@@ -250,7 +262,7 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
 
                                                     double kmDistance = driverOfRequestLocation.distanceInKilometersTo(pLocationAsParseGeoPoint);
 
-                                                    if (kmDistance < 0.5) {
+                                                    if (kmDistance < 0.05) {
 
 
                                                         requestObject.deleteInBackground(new DeleteCallback() {
@@ -267,8 +279,9 @@ public class PassengerActivity extends FragmentActivity implements OnMapReadyCal
 
                                                     } else {
 
-                                                        float roundedDistance = Math.round(kmDistance * 10) / 10;
-                                                        Toasty.info(PassengerActivity.this, requestObject.getString("MyDriver") + " is " + roundedDistance + " miles away from you!- Please wait!!!", Toasty.LENGTH_LONG).show();
+                                                        float roundedDistance = Math.round(kmDistance * 10)/10;
+                                                        Toasty.info(PassengerActivity.this, requestObject.getString("MyDriver") + " is " + roundedDistance +
+                                                                " kilometers away from you!- Please wait!!!", Toasty.LENGTH_LONG).show();
 
                                                         LatLng dLocation = new LatLng(driverOfRequestLocation.getLatitude(),
                                                                 driverOfRequestLocation.getLongitude());

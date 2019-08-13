@@ -29,12 +29,11 @@
             android:layout_height="wrap_content"
             android:text="@string/LogoutfromApp" />
 
-        <Button
-            android:id="@+id/btnBeepBeep"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/Beep" />
-
     </LinearLayout>
+    <Button
+        android:id="@+id/btnBeepBeep"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/Beep" />
 
 </LinearLayout>

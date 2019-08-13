@@ -16,7 +16,7 @@
     <string name="DriverorPassenger">Are you a Driver or a Passenger?</string>
     <string name="Onetimelogin">One time login</string>
     <string name="RequestaCar">Request a Car</string>
-    <string name="LogoutfromApp">Logout from App</string>
+    <string name="LogoutfromApp">Logout</string>
     <string name="ViewPassengerRequestsHere">View Passenger Requests Here</string>
     <string name="GetNearbyRequests">Get Nearby Requests</string>
     <string name="title_activity_passenger">Passenger</string>
